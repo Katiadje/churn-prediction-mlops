@@ -145,10 +145,13 @@ jobs:
         cache-to: type=gha,mode=max
     
     - name: 🧪 Test Docker Compose setup
+      env:
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       run: |
         docker compose version
         docker compose config
         echo "✅ Docker Compose configuration is valid"
+
 
   # ============================================
   # JOB 4: Data Validation (if Snowflake available)
