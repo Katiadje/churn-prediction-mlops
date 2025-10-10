@@ -112,7 +112,7 @@ jobs:
   # ============================================
   # JOB 3: Docker Build & Test
   # ============================================
-  docker:
+    docker:
     name: 🐳 Docker Build & Test
     runs-on: ubuntu-latest
     needs: test
@@ -144,14 +144,16 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
     
+    - name: 🧪 Create .env file
+      run: |
+        echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" > .env
+        echo "✅ .env file created"
+    
     - name: 🧪 Test Docker Compose setup
-      env:
-        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       run: |
         docker compose version
         docker compose config
         echo "✅ Docker Compose configuration is valid"
-
 
   # ============================================
   # JOB 4: Data Validation (if Snowflake available)
