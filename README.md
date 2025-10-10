@@ -211,20 +211,15 @@ pytest --cov=. --cov-report=html
 - [ ] Kubernetes deployment
 - [ ] Real-time feature computation
 
-## 🤝 Contribution
-
-Les PRs sont les bienvenues ! Voir [CONTRIBUTING.md](CONTRIBUTING.md)
-
 ## 📄 License
 
 MIT License - Libre d'utilisation pour ton portfolio
 
 ## 👤 Auteur
 
-**TON NOM**
-- Portfolio: [ton-site.com]
-- LinkedIn: [ton-profil]
-- GitHub: [@ton-username]
+**Katia_Djellali**
+- LinkedIn: [https://www.linkedin.com/in/katia-djellali/]
+- GitHub: [@Katiadje]
 
 ---
 
