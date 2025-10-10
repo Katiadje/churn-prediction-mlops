@@ -1,0 +1,68 @@
+# Configuration Prometheus pour monitoring MLOps
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'mlops-churn-prediction'
+    environment: 'production'
+
+# Règles d'alerte
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Fichiers de règles
+rule_files:
+  # - "alerts.yml"
+
+# Configuration des scrapes
+scrape_configs:
+  # Prometheus lui-même
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # API FastAPI
+  - job_name: 'churn_api'
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['churn_prediction_api:8000']
+        labels:
+          service: 'churn-prediction-api'
+          environment: 'production'
+
+  # MLflow
+  - job_name: 'mlflow'
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['mlflow_server:5000']
+        labels:
+          service: 'mlflow-tracking'
+
+  # Streamlit Dashboard
+  - job_name: 'streamlit'
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['streamlit_dashboard:8501']
+        labels:
+          service: 'dashboard'
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis_cache:6379']
+        labels:
+          service: 'redis-cache'
+
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['mlflow_postgres:5432']
+        labels:
+          service: 'mlflow-db'

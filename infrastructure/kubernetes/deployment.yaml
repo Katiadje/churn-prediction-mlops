@@ -1,0 +1,334 @@
+# Kubernetes deployment for MLOps platform
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mlops-churn
+  labels:
+    name: mlops-churn
+    environment: production
+
+---
+# ConfigMap pour variables d'environnement
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: churn-api-config
+  namespace: mlops-churn
+data:
+  ENVIRONMENT: "production"
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  API_WORKERS: "4"
+  LOG_LEVEL: "INFO"
+  MLFLOW_TRACKING_URI: "http://mlflow-service:5000"
+
+---
+# Secret pour credentials (à remplir via kubectl)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: snowflake-credentials
+  namespace: mlops-churn
+type: Opaque
+data:
+  # Encode en base64: echo -n 'value' | base64
+  SNOWFLAKE_ACCOUNT: ""
+  SNOWFLAKE_USER: ""
+  SNOWFLAKE_PASSWORD: ""
+  SNOWFLAKE_WAREHOUSE: ""
+  SNOWFLAKE_DATABASE: ""
+  SNOWFLAKE_SCHEMA: ""
+
+---
+# Deployment MLflow
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: mlops-churn
+  labels:
+    app: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      containers:
+      - name: mlflow
+        image: ghcr.io/mlflow/mlflow:v2.7.1
+        ports:
+        - containerPort: 5000
+          name: http
+        command:
+        - mlflow
+        - server
+        - --backend-store-uri
+        - sqlite:///mlflow/mlflow.db
+        - --default-artifact-root
+        - /mlflow/artifacts
+        - --host
+        - 0.0.0.0
+        - --port
+        - "5000"
+        volumeMounts:
+        - name: mlflow-data
+          mountPath: /mlflow
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: mlflow-data
+        persistentVolumeClaim:
+          claimName: mlflow-pvc
+
+---
+# Service MLflow
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow-service
+  namespace: mlops-churn
+spec:
+  selector:
+    app: mlflow
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+  type: ClusterIP
+
+---
+# Deployment API
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: churn-api
+  namespace: mlops-churn
+  labels:
+    app: churn-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: churn-api
+  template:
+    metadata:
+      labels:
+        app: churn-api
+    spec:
+      containers:
+      - name: api
+        image: your-registry/churn-api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: churn-api-config
+              key: ENVIRONMENT
+        - name: API_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: churn-api-config
+              key: API_PORT
+        - name: MLFLOW_TRACKING_URI
+          valueFrom:
+            configMapKeyRef:
+              name: churn-api-config
+              key: MLFLOW_TRACKING_URI
+        envFrom:
+        - secretRef:
+            name: snowflake-credentials
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+        volumeMounts:
+        - name: artifacts
+          mountPath: /app/artifacts
+      volumes:
+      - name: artifacts
+        persistentVolumeClaim:
+          claimName: artifacts-pvc
+
+---
+# Service API
+apiVersion: v1
+kind: Service
+metadata:
+  name: churn-api-service
+  namespace: mlops-churn
+spec:
+  selector:
+    app: churn-api
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+  type: LoadBalancer
+
+---
+# HorizontalPodAutoscaler pour API
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: churn-api-hpa
+  namespace: mlops-churn
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: churn-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# PersistentVolumeClaim pour MLflow
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mlflow-pvc
+  namespace: mlops-churn
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# PersistentVolumeClaim pour artifacts
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: artifacts-pvc
+  namespace: mlops-churn
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard
+
+---
+# Ingress pour exposer l'API
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: churn-api-ingress
+  namespace: mlops-churn
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+spec:
+  tls:
+  - hosts:
+    - api.your-domain.com
+    secretName: churn-api-tls
+  rules:
+  - host: api.your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: churn-api-service
+            port:
+              number: 80
+
+---
+# NetworkPolicy pour sécurité
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: churn-api-network-policy
+  namespace: mlops-churn
+spec:
+  podSelector:
+    matchLabels:
+      app: churn-api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mlflow
+    ports:
+    - protocol: TCP
+      port: 5000
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80

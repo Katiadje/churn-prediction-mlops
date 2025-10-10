@@ -1,0 +1,38 @@
+{
+  "model_name": "XGBoost",
+  "best_score": 0.43330179754020814,
+  "trained_at": "2025-10-09T23:49:44.704139",
+  "features": [
+    "tenure_months",
+    "monthly_charges",
+    "total_charges",
+    "avg_monthly_spend",
+    "charges_to_tenure_ratio",
+    "total_services",
+    "risk_score",
+    "senior_citizen",
+    "is_new_customer",
+    "is_loyal_customer",
+    "high_spender",
+    "has_premium_services",
+    "high_risk_contract",
+    "risky_payment",
+    "no_protection",
+    "has_phone_internet",
+    "paperless_engaged",
+    "online_security_yes",
+    "online_backup_yes",
+    "device_protection_yes",
+    "tech_support_yes",
+    "streaming_tv_yes",
+    "streaming_movies_yes",
+    "contract_type_encoded",
+    "payment_method_encoded",
+    "internet_service_encoded",
+    "phone_service_encoded"
+  ],
+  "metrics": {
+    "f1_score": 0.43330179754020814,
+    "accuracy": 0.7005
+  }
+}

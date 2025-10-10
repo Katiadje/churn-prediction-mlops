@@ -1,0 +1,113 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# MLflow
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Model artifacts
+artifacts/*.pkl
+artifacts/*.joblib
+artifacts/*.h5
+artifacts/*.pt
+models/saved_models/
+*.onnx
+
+# Logs
+logs/
+*.log
+*.out
+
+# Data
+data/raw/
+data/processed/
+*.csv
+*.xlsx
+*.parquet
+*.db
+*.sqlite
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+test-results/
+
+# Monitoring
+monitoring/reports/*.html
+monitoring/reports/*.json
+
+# Docker
+.dockerignore
+*.tar.gz
+
+# Snowflake credentials
+snowflake_credentials.json
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Deployment
+*.war
+*.zip
+
+# Secrets
+secrets/
+*.pem
+*.key
+credentials.json
