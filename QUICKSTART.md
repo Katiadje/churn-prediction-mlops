@@ -293,9 +293,8 @@ pip install -r requirements.txt
 ## 💬 Support
 
 Des questions? 
-- 📧 Email: ton-email@example.com
-- 💼 LinkedIn: ton-profil
-- 🐙 GitHub: @ton-username
+- 💼 LinkedIn: katia-djellali
+- 🐙 GitHub: @Katiadje
 
 ---
 
