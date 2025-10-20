@@ -7,8 +7,8 @@ Guide pour lancer le projet en **10 minutes** et avoir ton premier modèle MLOps
 ### 1. Clone et Setup
 ```bash
 # Clone le repo
-git clone https://github.com/TON_USERNAME/customer-churn-mlops.git
-cd customer-churn-mlops
+git clone https://github.com/Katiadje/churn-prediction-mlops.git
+cd churn-prediction-mlops
 
 # Rendre le script exécutable
 chmod +x setup.sh

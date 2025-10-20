@@ -60,8 +60,8 @@ Production-ready MLOps platform for customer churn prediction using Snowflake, M
 
 ```bash
 # Clone le repo
-git clone https://github.com/TON_USERNAME/customer-churn-mlops.git
-cd customer-churn-mlops
+git clone https://github.com/Katiadje/churn-prediction-mlops.git
+cd churn-prediction-mlops
 
 # Créer environnement virtuel
 python -m venv venv
